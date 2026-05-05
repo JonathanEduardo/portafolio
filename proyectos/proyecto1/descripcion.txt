@@ -1,0 +1,1 @@
+Este es el proyecto 1. Una aplicación web desarrollada con HTML, CSS y JavaScript. Incluye funcionalidades interactivas y un diseño responsivo.
