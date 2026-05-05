@@ -3,10 +3,112 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mi Portafolio</title>
+    <title>Jonathan Eduardo Quistiano Hernández - Portafolio</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         /* Animaciones personalizadas */
+        :root {
+            --primary: #3b82f6;
+            --primary-2: #06b6d4;
+            --bg-0: #020617;
+            --bg-1: #050b1d;
+            --border: rgba(148, 163, 184, 0.15);
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background:
+                radial-gradient(900px 500px at 20% 10%, rgba(59, 130, 246, 0.25), transparent 55%),
+                radial-gradient(700px 400px at 85% 20%, rgba(6, 182, 212, 0.18), transparent 55%),
+                linear-gradient(180deg, var(--bg-0), var(--bg-1));
+            color: #e5e7eb;
+        }
+
+        .glass {
+            background: rgba(2, 6, 23, 0.7);
+            border: 1px solid var(--border);
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-link {
+            position: relative;
+            padding-bottom: 0.45rem;
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--primary), var(--primary-2));
+            transition: width 0.25s ease;
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(90deg, var(--primary), var(--primary-2));
+            color: white;
+            padding: 0.75rem 1.1rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            border: 1px solid rgba(59, 130, 246, 0.35);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 18px 35px rgba(59, 130, 246, 0.25);
+        }
+
+        .btn-secondary {
+            background: rgba(2, 6, 23, 0.35);
+            color: #e5e7eb;
+            padding: 0.75rem 1.1rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            border: 1px solid var(--border);
+            transition: background 0.2s ease, transform 0.2s ease;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(59, 130, 246, 0.12);
+            transform: translateY(-1px);
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-2) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-box {
+            border-left: 3px solid rgba(59, 130, 246, 0.7);
+            padding-left: 1rem;
+        }
+
+        .stat-number {
+            font-size: 1.65rem;
+            font-weight: 800;
+            color: #93c5fd;
+            line-height: 1;
+        }
+
+        .stat-label {
+            color: rgba(226, 232, 240, 0.7);
+            font-size: 0.85rem;
+            margin-top: 0.35rem;
+        }
+
         .fade-in {
             animation: fadeIn 1s ease-in;
         }
@@ -21,137 +123,437 @@
             from { transform: translateY(50px); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
         }
+        .project-image {
+            min-height: 180px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #e2e8f0;
+            font-size: 0.95rem;
+            letter-spacing: 0.02em;
+            border-radius: 0.85rem;
+            border: 1px solid var(--border);
+        }
+        .project-image::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(15,23,42,0.14), rgba(15,23,42,0.64));
+            opacity: 0.25;
+            border-radius: 0.85rem;
+        }
+        .project-image span {
+            position: relative;
+            z-index: 1;
+        }
+
+        .project-card {
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            background: rgba(2, 6, 23, 0.65);
+            transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+        }
+
+        .project-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(59, 130, 246, 0.4);
+            background: rgba(2, 6, 23, 0.8);
+        }
+
+        .section-title {
+            letter-spacing: 0.02em;
+        }
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(15,23,42,0.75);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+        }
+        .modal-backdrop.open {
+            display: flex;
+        }
+        .modal-content {
+            max-width: 90%;
+            width: 900px;
+            background: #111827;
+            border-radius: 1rem;
+            overflow: hidden;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.35);
+        }
+        .modal-image {
+            width: 100%;
+            height: 500px;
+            object-fit: contain;
+            background: #0f172a;
+        }
+        .modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+        }
+
     </style>
 </head>
-<body class="bg-gray-100 text-gray-900">
-    <header class="bg-gray-800 text-white p-6 text-center shadow-lg fade-in">
-        <h1 class="text-4xl font-bold">Jonathan Eduardo Quistiano Hernández</h1>
-        <p class="text-lg mt-2">Desarrollador Full Stack | Arquitecto JR</p>
-        <nav class="mt-4">
-            <ul class="flex justify-center space-x-6">
-                <li><a href="#about" class="hover:text-blue-400 transition duration-300">Sobre Mí</a></li>
-                <li><a href="#experience" class="hover:text-blue-400 transition duration-300">Experiencia</a></li>
-                <li><a href="#projects" class="hover:text-blue-400 transition duration-300">Proyectos</a></li>
-                <li><a href="#skills" class="hover:text-blue-400 transition duration-300">Habilidades</a></li>
-                <li><a href="#education" class="hover:text-blue-400 transition duration-300">Educación</a></li>
-                <li><a href="#contact" class="hover:text-blue-400 transition duration-300">Contacto</a></li>
-            </ul>
-        </nav>
-    </header>
-
-    <section id="about" class="py-16 px-8 max-w-4xl mx-auto slide-up">
-        <h2 class="text-3xl font-semibold mb-4 text-center">Sobre Mí</h2>
-        <p class="text-lg leading-relaxed">Desarrollador Full Stack con más de 6 años creando software empresarial de alto impacto. Domino el ciclo completo: análisis, diseño, desarrollo, implementación y mejora continua. Trabajo con Cloud (AWS, Azure), automatización CI/CD y arquitecturas escalables. Comprometido con código de calidad, estándares internos y peer reviews. Impulso iniciativas técnicas con Scrum e incorporo IA y LLMs cuando aportan valor.</p>
-    </section>
-
-    <section id="experience" class="py-16 px-8 bg-gray-50 max-w-6xl mx-auto slide-up">
-        <h2 class="text-3xl font-semibold mb-8 text-center">Experiencia Profesional</h2>
-        <div class="space-y-8">
-            <div class="bg-white p-6 rounded-lg shadow-md">
-                <h3 class="text-xl font-bold">Programador Full Stack</h3>
-                <p class="text-gray-600">Kircof Digital | Enero 2020 – Presente</p>
-                <ul class="list-disc list-inside mt-4 space-y-2">
-                    <li>Desarrollo y mantenimiento de aplicaciones web robustas para empresas como BMW, Syngenta, Henkel, Mattsa y Eticom.</li>
-                    <li>Implementación de APIs seguras y escalables con Laravel PHP, .NET C#, Node.js (NEST JS).</li>
-                    <li>Diseño y optimización de bases de datos relacionales (MySQL, PostgreSQL, SQL Server).</li>
-                    <li>Integración de servicios Cloud (AWS, Azure) con pipelines CI/CD automatizados.</li>
-                    <li>Aplicación de principios SOLID, arquitectura limpia y control de versiones con Git.</li>
-                    <li>Implementación de estándares internos de calidad, revisión de código y testing automatizado.</li>
-                </ul>
-            </div>
-            <div class="bg-white p-6 rounded-lg shadow-md">
-                <h3 class="text-xl font-bold">Programador Full Stack</h3>
-                <p class="text-gray-600">Skye Group | Octubre 2024 – Julio 2025</p>
-                <ul class="list-disc list-inside mt-4 space-y-2">
-                    <li>Proyectos Fullstack para marcas como KIA, Gobierno de NL y Ruhrpumpen.</li>
-                    <li>Integración de LLMs para soluciones empresariales: diseño, integración y mejora continua (NodeJs, Python).</li>
-                    <li>Diseño e implementación de arquitecturas MVC, limpias y modulares, aplicando principios SOLID en el back-end (Express.js, FastAPI, Laravel) y Atomic Design en el front-end (React, Angular).</li>
-                    <li>Autenticación segura mediante protocolo OAuth 2.0 + PKCE.</li>
-                    <li>CI/CD en Azure DevOps con pruebas automatizadas, análisis estático y despliegues controlados.</li>
-                    <li>Coordinación técnica y documentación con Swagger, OpenAPI y MkDocs.</li>
-                </ul>
-            </div>
-        </div>
-    </section>
-
-    <section id="projects" class="py-16 px-8 bg-white max-w-6xl mx-auto slide-up">
-        <h2 class="text-3xl font-semibold mb-8 text-center">Proyectos</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <div class="project bg-gray-50 p-6 rounded-lg shadow-md hover:shadow-lg transition duration-300">
-                <img src="proyectos/proyecto1/imagen.svg" alt="Proyecto 1" class="w-full h-32 object-cover mb-4 rounded">
-                <h3 class="text-xl font-bold mb-2">Proyecto 1</h3>
-                <p class="mb-4">Descripción del proyecto 1.</p>
-                <a href="#" class="text-blue-500 hover:text-blue-700">Ver más</a>
-            </div>
-            <div class="project bg-gray-50 p-6 rounded-lg shadow-md hover:shadow-lg transition duration-300">
-                <img src="proyectos/proyecto2/imagen.svg" alt="Proyecto 2" class="w-full h-32 object-cover mb-4 rounded">
-                <h3 class="text-xl font-bold mb-2">Proyecto 2</h3>
-                <p class="mb-4">Descripción del proyecto 2.</p>
-                <a href="#" class="text-blue-500 hover:text-blue-700">Ver más</a>
-            </div>
-            <div class="project bg-gray-50 p-6 rounded-lg shadow-md hover:shadow-lg transition duration-300">
-                <img src="proyectos/proyecto3/imagen.svg" alt="Proyecto 3" class="w-full h-32 object-cover mb-4 rounded">
-                <h3 class="text-xl font-bold mb-2">Proyecto 3</h3>
-                <p class="mb-4">Descripción del proyecto 3.</p>
-                <a href="#" class="text-blue-500 hover:text-blue-700">Ver más</a>
-            </div>
-        </div>
-    </section>
-
-    <section id="skills" class="py-16 px-8 max-w-4xl mx-auto slide-up">
-        <h2 class="text-3xl font-semibold mb-8 text-center">Habilidades</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div>
-                <h3 class="text-xl font-bold mb-4">Habilidades Duras</h3>
-                <div class="flex flex-wrap gap-2">
-                    <span class="bg-blue-500 text-white px-3 py-1 rounded-full">Pensamiento analítico y crítico</span>
-                    <span class="bg-blue-500 text-white px-3 py-1 rounded-full">Adaptabilidad y aprendizaje continuo</span>
-                    <span class="bg-blue-500 text-white px-3 py-1 rounded-full">Enfoque en el usuario</span>
-                    <span class="bg-blue-500 text-white px-3 py-1 rounded-full">Resolución de problemas</span>
-                    <span class="bg-blue-500 text-white px-3 py-1 rounded-full">Colaboración interfuncional</span>
-                    <span class="bg-blue-500 text-white px-3 py-1 rounded-full">Atención al detalle</span>
-                </div>
-            </div>
-            <div>
-                <h3 class="text-xl font-bold mb-4">Habilidades Blandas</h3>
-                <div class="space-y-2">
-                    <p><strong>Lenguajes:</strong> Python, Node.js, PHP, TypeScript, JavaScript</p>
-                    <p><strong>Frameworks:</strong> React, Angular, Laravel, FastAPI, Express.js, Nest.js, Next.js</p>
-                    <p><strong>Arquitectura:</strong> MVC, Atomic Design, SOLID</p>
-                    <p><strong>Herramientas:</strong> SCRUM, GIT, Docker, Microservicios, CI/CD</p>
-                    <p><strong>Servicios en la Nube:</strong> AWS & Azure</p>
-                    <p><strong>Frontend:</strong> CSS, HTML, Tailwind CSS, Bootstrap</p>
-                    <p><strong>RDBMS:</strong> MySQL, PostgreSQL, SQL Server, Oracle</p>
-                    <p><strong>IA:</strong> LLM, N8N</p>
+<body class="min-h-screen">
+    <nav class="fixed top-0 w-full z-40">
+        <div class="glass border-b border-slate-800/60">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+                <a href="#top" class="flex items-center gap-3">
+                    <div class="h-10 w-10 rounded-xl grid place-items-center bg-slate-900/60 border border-slate-700/40">
+                        <span class="font-extrabold text-slate-100">JQ</span>
+                    </div>
+                    <div class="leading-tight">
+                        <div class="text-slate-100 font-semibold">Jonathan Quistiano</div>
+                        <div class="text-xs text-slate-400">Desarrollador Full Stack | Arquitecto JR</div>
+                    </div>
+                </a>
+                <div class="hidden lg:flex items-center gap-8 text-sm">
+                    <a href="#about" class="nav-link text-slate-300 hover:text-white transition">Sobre Mí</a>
+                    <a href="#experience" class="nav-link text-slate-300 hover:text-white transition">Experiencia</a>
+                    <a href="#projects" class="nav-link text-slate-300 hover:text-white transition">Proyectos</a>
+                    <a href="#skills" class="nav-link text-slate-300 hover:text-white transition">Habilidades</a>
+                    <a href="#education" class="nav-link text-slate-300 hover:text-white transition">Educación</a>
+                    <a href="#contact" class="nav-link text-slate-300 hover:text-white transition">Contacto</a>
+                    <button class="btn-primary" type="button">
+                        <i class="fa-solid fa-download mr-2"></i>
+                        Descargar CV
+                    </button>
                 </div>
             </div>
         </div>
-    </section>
+    </nav>
 
-    <section id="education" class="py-16 px-8 bg-white max-w-4xl mx-auto slide-up">
-        <h2 class="text-3xl font-semibold mb-8 text-center">Educación</h2>
-        <div class="bg-gray-50 p-6 rounded-lg shadow-md">
-            <h3 class="text-xl font-bold">Licenciatura en Ingeniería Informática</h3>
-            <p class="text-gray-600">Universidad Autónoma de San Luis Potosí (UASLP)</p>
-            <p class="text-gray-600">Agosto 2014 - Junio 2020</p>
-            <p class="mt-4">Inglés: Intermedio | Español: Nativa</p>
+    <main id="top" class="pt-28">
+        <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid lg:grid-cols-2 gap-10 items-center">
+                <div class="fade-in">
+                    <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-slate-700/40 bg-slate-900/40 text-xs text-slate-300">
+                        <span class="h-2 w-2 rounded-full bg-cyan-400"></span>
+                        DESARROLLADOR FULL STACK | ARQUITECTO JR
+                    </div>
+                    <h1 class="mt-6 text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-50">
+                        Construyo soluciones
+                        <span class="gradient-text">de software escalables</span>
+                        y de alto impacto
+                    </h1>
+                    <p class="mt-6 text-slate-300 text-lg leading-relaxed">
+                        Más de 6 años desarrollando aplicaciones web robustas, APIs seguras, integraciones en IA y arquitecturas modernas en la nube. Apasionado por el código limpio, la automatización y la mejora continua.
+                    </p>
+                    <div class="mt-8 flex flex-wrap gap-4">
+                        <a href="#projects" class="btn-primary inline-flex items-center gap-2">
+                            <i class="fa-solid fa-folder-open"></i>
+                            Ver Proyectos
+                        </a>
+                        <a href="#contact" class="btn-secondary inline-flex items-center gap-2">
+                            <i class="fa-solid fa-envelope"></i>
+                            Contactarme
+                        </a>
+                    </div>
+                    <div class="mt-10 grid grid-cols-3 gap-6">
+                        <div class="stat-box">
+                            <div class="stat-number">6+</div>
+                            <div class="stat-label">Años de experiencia</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-number">20+</div>
+                            <div class="stat-label">Proyectos completados</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-number">100%</div>
+                            <div class="stat-label">Comprometido</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="relative flex justify-center lg:justify-end slide-up">
+                    <div class="absolute -inset-6 rounded-full blur-3xl opacity-40" style="background: radial-gradient(circle, rgba(59,130,246,0.45), transparent 60%);"></div>
+                    <div class="relative glass rounded-3xl p-8 border border-slate-800/60 w-full max-w-md">
+                        <div class="flex items-center gap-3">
+                            <div class="h-12 w-12 rounded-2xl bg-slate-900/60 border border-slate-700/40 grid place-items-center">
+                                <i class="fa-solid fa-code text-sky-300"></i>
+                            </div>
+                            <div>
+                                <div class="text-slate-100 font-semibold">Enfoque</div>
+                                <div class="text-slate-400 text-sm">Calidad, escalabilidad y entrega</div>
+                            </div>
+                        </div>
+                        <div class="mt-6 grid gap-3 text-sm">
+                            <div class="flex items-center justify-between p-3 rounded-xl bg-slate-950/50 border border-slate-800/60">
+                                <span class="text-slate-300">Backend & APIs</span>
+                                <span class="text-slate-100 font-semibold">SOLID</span>
+                            </div>
+                            <div class="flex items-center justify-between p-3 rounded-xl bg-slate-950/50 border border-slate-800/60">
+                                <span class="text-slate-300">Cloud & DevOps</span>
+                                <span class="text-slate-100 font-semibold">CI/CD</span>
+                            </div>
+                            <div class="flex items-center justify-between p-3 rounded-xl bg-slate-950/50 border border-slate-800/60">
+                                <span class="text-slate-300">IA & LLMs</span>
+                                <span class="text-slate-100 font-semibold">Integración</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="about" class="mt-20">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="grid lg:grid-cols-3 gap-10 items-start">
+                    <div class="lg:col-span-1">
+                        <h2 class="section-title text-3xl font-bold text-slate-50">Sobre Mí</h2>
+                        <p class="mt-4 text-slate-300 leading-relaxed">Desarrollador Full Stack con más de 6 años creando software empresarial de alto impacto. Domino el ciclo completo: análisis, diseño, desarrollo, implementación y mejora continua. Trabajo con Cloud (AWS, Azure), automatización CI/CD y arquitecturas escalables. Comprometido con código de calidad, estándares internos y peer reviews. Impulso iniciativas técnicas con Scrum e incorporo IA y LLMs cuando aportan valor.</p>
+                    </div>
+                    <div class="lg:col-span-2 grid sm:grid-cols-2 gap-6">
+                        <div class="glass rounded-2xl p-6 border border-slate-800/60">
+                            <div class="flex items-center gap-3">
+                                <div class="h-10 w-10 rounded-xl bg-slate-900/60 border border-slate-700/40 grid place-items-center">
+                                    <i class="fa-solid fa-layer-group text-sky-300"></i>
+                                </div>
+                                <h3 class="text-slate-100 font-semibold">Desarrollo Full Stack</h3>
+                            </div>
+                            <p class="mt-3 text-sm text-slate-300 leading-relaxed">Frontend moderno y backends escalables con foco en mantenibilidad y mejores prácticas.</p>
+                        </div>
+                        <div class="glass rounded-2xl p-6 border border-slate-800/60">
+                            <div class="flex items-center gap-3">
+                                <div class="h-10 w-10 rounded-xl bg-slate-900/60 border border-slate-700/40 grid place-items-center">
+                                    <i class="fa-solid fa-cloud text-cyan-300"></i>
+                                </div>
+                                <h3 class="text-slate-100 font-semibold">Cloud & DevOps</h3>
+                            </div>
+                            <p class="mt-3 text-sm text-slate-300 leading-relaxed">Despliegues y automatización en AWS y Azure con CI/CD y observabilidad.</p>
+                        </div>
+                        <div class="glass rounded-2xl p-6 border border-slate-800/60">
+                            <div class="flex items-center gap-3">
+                                <div class="h-10 w-10 rounded-xl bg-slate-900/60 border border-slate-700/40 grid place-items-center">
+                                    <i class="fa-solid fa-shield-halved text-blue-300"></i>
+                                </div>
+                                <h3 class="text-slate-100 font-semibold">Seguridad</h3>
+                            </div>
+                            <p class="mt-3 text-sm text-slate-300 leading-relaxed">Aplicación de buenas prácticas de seguridad, autenticación y autorización.</p>
+                        </div>
+                        <div class="glass rounded-2xl p-6 border border-slate-800/60">
+                            <div class="flex items-center gap-3">
+                                <div class="h-10 w-10 rounded-xl bg-slate-900/60 border border-slate-700/40 grid place-items-center">
+                                    <i class="fa-solid fa-robot text-cyan-200"></i>
+                                </div>
+                                <h3 class="text-slate-100 font-semibold">IA & LLMs</h3>
+                            </div>
+                            <p class="mt-3 text-sm text-slate-300 leading-relaxed">Integración de IA y LLMs para optimizar procesos y construir soluciones inteligentes.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="experience" class="mt-20">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h2 class="section-title text-3xl font-bold text-slate-50 text-center">Experiencia Profesional</h2>
+                <div class="mt-10 grid lg:grid-cols-2 gap-6">
+                    <div class="glass rounded-2xl p-8 border border-slate-800/60">
+                        <h3 class="text-xl font-bold text-slate-100">Programador Full Stack</h3>
+                        <p class="text-slate-400 mt-1">Kircof Digital | Enero 2020 – Presente</p>
+                        <ul class="list-disc list-inside mt-4 space-y-2 text-slate-300">
+                            <li>Desarrollo y mantenimiento de aplicaciones web robustas para empresas como BMW, Syngenta, Henkel, Mattsa y Eticom.</li>
+                            <li>Implementación de APIs seguras y escalables con Laravel PHP, .NET C#, Node.js (NEST JS).</li>
+                            <li>Diseño y optimización de bases de datos relacionales (MySQL, PostgreSQL, SQL Server).</li>
+                            <li>Integración de servicios Cloud (AWS, Azure) con pipelines CI/CD automatizados.</li>
+                            <li>Aplicación de principios SOLID, arquitectura limpia y control de versiones con Git.</li>
+                            <li>Implementación de estándares internos de calidad, revisión de código y testing automatizado.</li>
+                        </ul>
+                    </div>
+                    <div class="glass rounded-2xl p-8 border border-slate-800/60">
+                        <h3 class="text-xl font-bold text-slate-100">Programador Full Stack</h3>
+                        <p class="text-slate-400 mt-1">Skye Group | Octubre 2024 – Julio 2025</p>
+                        <ul class="list-disc list-inside mt-4 space-y-2 text-slate-300">
+                            <li>Proyectos Fullstack para marcas como KIA, Gobierno de NL y Ruhrpumpen.</li>
+                            <li>Integración de LLMs para soluciones empresariales: diseño, integración y mejora continua (NodeJs, Python).</li>
+                            <li>Diseño e implementación de arquitecturas MVC, limpias y modulares, aplicando principios SOLID en el back-end (Express.js, FastAPI, Laravel) y Atomic Design en el front-end (React, Angular).</li>
+                            <li>Autenticación segura mediante protocolo OAuth 2.0 + PKCE.</li>
+                            <li>CI/CD en Azure DevOps con pruebas automatizadas, análisis estático y despliegues controlados.</li>
+                            <li>Coordinación técnica y documentación con Swagger, OpenAPI y MkDocs.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="projects" class="mt-20">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex items-end justify-between gap-6 flex-wrap">
+                    <div>
+                        <h2 class="section-title text-3xl font-bold text-slate-50">Proyectos Destacados</h2>
+                        <p class="mt-3 text-slate-300 max-w-3xl">Algunos proyectos son privados; aquí muestro casos de uso, tecnología y valor en cada solución con un panel expandible.</p>
+                    </div>
+                </div>
+                <div class="mt-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="project project-card p-6">
+                        <div class="project-image mb-4" data-images='["proyectos/ChatbotIA/image.png","proyectos/ChatbotIA/imagen.svg"]' data-project="chatbotia">
+                            <span>Sin imagen principal</span>
+                        </div>
+                        <div class="flex items-start justify-between gap-4">
+                            <div>
+                                <h3 class="text-xl font-bold text-slate-100">ChatbotIA</h3>
+                                <p class="text-sm text-slate-400 mt-1">Soporte BMW con OpenAI y Laravel, IA contextual y búsqueda vectorial.</p>
+                            </div>
+                            <button class="project-toggle text-sky-300 hover:text-sky-200" data-target="chatbotia-details" type="button">+</button>
+                        </div>
+                        <div id="chatbotia-details" class="collapse-content overflow-hidden max-h-0 transition-all duration-300 ease-out text-sm text-slate-300 mt-4">
+                            <p class="mb-2">Arquitectura limpia de tres capas: webhook, procesamiento en background y agente inteligente con pgvector y GPT-4o-mini.</p>
+                            <p class="mb-2">Diseñado para mantener separación de responsabilidades y respuestas precisas en soporte técnico.</p>
+                            <p class="text-xs text-slate-500">Código privado.</p>
+                        </div>
+                    </div>
+                    <div class="project project-card p-6">
+                        <div class="project-image mb-4" data-images='["proyectos/GestionAccesoClinica/BienvenidoPortarlAcceso.png","proyectos/GestionAccesoClinica/GestionPermisso.png"]' data-project="accesoclinica">
+                            <span>Gestión Acceso Clínica</span>
+                        </div>
+                        <div class="flex items-start justify-between gap-4">
+                            <div>
+                                <h3 class="text-xl font-bold text-slate-100">Gestión Acceso Clínica</h3>
+                                <p class="text-sm text-slate-400 mt-1">Control de acceso y validación documental en tiempo real con OpenAI y React.</p>
+                            </div>
+                            <button class="project-toggle text-sky-300 hover:text-sky-200" data-target="accesoclinica-details" type="button">+</button>
+                        </div>
+                        <div id="accesoclinica-details" class="collapse-content overflow-hidden max-h-0 transition-all duration-300 ease-out text-sm text-slate-300 mt-4">
+                            <p class="mb-2">Integración con hardware de acceso y verificación de identidad para personal externo en clínica.</p>
+                            <p class="mb-2">Arquitectura basada en Atomic Design, clean code y una UX clara para operaciones críticas.</p>
+                            <p class="text-xs text-slate-500">Código privado.</p>
+                        </div>
+                    </div>
+                    <div class="project project-card p-6">
+                        <div class="project-image mb-4" data-images='[]' data-project="contratistas">
+                            <span>Imagen no disponible</span>
+                        </div>
+                        <div class="flex items-start justify-between gap-4">
+                            <div>
+                                <h3 class="text-xl font-bold text-slate-100">Gestión Contratistas</h3>
+                                <p class="text-sm text-slate-400 mt-1">Panel de KPI, incidentes y pólizas para contratistas con Laravel y Livewire.</p>
+                            </div>
+                            <button class="project-toggle text-sky-300 hover:text-sky-200" data-target="contratistas-details" type="button">+</button>
+                        </div>
+                        <div id="contratistas-details" class="collapse-content overflow-hidden max-h-0 transition-all duration-300 ease-out text-sm text-slate-300 mt-4">
+                            <p class="mb-2">Solución empresarial que centraliza métricas de desempeño y gestión documental para un cliente automotriz.</p>
+                            <p class="mb-2">Estructura modular y enfocada en visibilidad de riesgos, KPIs y seguridad operativa.</p>
+                            <p class="text-xs text-slate-500">Código privado.</p>
+                        </div>
+                    </div>
+                    <div class="project project-card p-6">
+                        <div class="project-image mb-4" data-images='["proyectos/TeLatte/materialnuevo.png","proyectos/TeLatte/receta.png","proyectos/TeLatte/imagen.svg"]' data-project="telatte">
+                            <span>TeLatte</span>
+                        </div>
+                        <div class="flex items-start justify-between gap-4">
+                            <div>
+                                <h3 class="text-xl font-bold text-slate-100">TeLatte</h3>
+                                <p class="text-sm text-slate-400 mt-1">App para cafeterías que gestiona inventario, catálogo y alertas de stock.</p>
+                            </div>
+                            <button class="project-toggle text-sky-300 hover:text-sky-200" data-target="telatte-details" type="button">+</button>
+                        </div>
+                        <div id="telatte-details" class="collapse-content overflow-hidden max-h-0 transition-all duration-300 ease-out text-sm text-slate-300 mt-4">
+                            <p class="mb-2">Gestiona recetas asociadas a productos, costos sugeridos y producción eficiente para cafeterías.</p>
+                            <p class="mb-2">Desarrollada con Laravel y React para un flujo rápido y escalable en operación de locales.</p>
+                            <p class="text-xs text-slate-500">Código privado.</p>
+                        </div>
+                    </div>
+                    <div class="project project-card p-6">
+                        <div class="project-image mb-4" data-images='["proyectos/TravelCore/Login.png","proyectos/TravelCore/VistaViajes.png"]' data-project="travelcore">
+                            <span>TravelCore</span>
+                        </div>
+                        <div class="flex items-start justify-between gap-4">
+                            <div>
+                                <h3 class="text-xl font-bold text-slate-100">TravelCore</h3>
+                                <p class="text-sm text-slate-400 mt-1">Gestión de viajes con Next.js, FastAPI y seguridad OAuth2/JWT.</p>
+                            </div>
+                            <button class="project-toggle text-sky-300 hover:text-sky-200" data-target="travelcore-details" type="button">+</button>
+                        </div>
+                        <div id="travelcore-details" class="collapse-content overflow-hidden max-h-0 transition-all duration-300 ease-out text-sm text-slate-300 mt-4">
+                            <p class="mb-2">Arquitectura dockerizada lista para agencias que necesitan itinerarios, paquetes y experiencia móvil avanzada.</p>
+                            <p class="mb-2">Integra seguridad de sesiones y escalabilidad con componentes modernos y shadcn UI.</p>
+                            <p class="text-xs text-slate-500">Código privado.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="skills" class="mt-20">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h2 class="section-title text-3xl font-bold text-slate-50 text-center">Habilidades</h2>
+                <div class="mt-10 grid lg:grid-cols-2 gap-6">
+                    <div class="glass rounded-2xl p-8 border border-slate-800/60">
+                        <h3 class="text-xl font-bold text-slate-100 mb-4">Habilidades Duras</h3>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="px-3 py-1 rounded-full text-sm bg-sky-500/15 border border-sky-500/30 text-sky-200">Pensamiento analítico y crítico</span>
+                            <span class="px-3 py-1 rounded-full text-sm bg-sky-500/15 border border-sky-500/30 text-sky-200">Adaptabilidad y aprendizaje continuo</span>
+                            <span class="px-3 py-1 rounded-full text-sm bg-sky-500/15 border border-sky-500/30 text-sky-200">Enfoque en el usuario</span>
+                            <span class="px-3 py-1 rounded-full text-sm bg-sky-500/15 border border-sky-500/30 text-sky-200">Resolución de problemas</span>
+                            <span class="px-3 py-1 rounded-full text-sm bg-sky-500/15 border border-sky-500/30 text-sky-200">Colaboración interfuncional</span>
+                            <span class="px-3 py-1 rounded-full text-sm bg-sky-500/15 border border-sky-500/30 text-sky-200">Atención al detalle</span>
+                        </div>
+                    </div>
+                    <div class="glass rounded-2xl p-8 border border-slate-800/60">
+                        <h3 class="text-xl font-bold text-slate-100 mb-4">Habilidades Blandas</h3>
+                        <div class="space-y-2 text-slate-300">
+                            <p><strong>Lenguajes:</strong> Python, Node.js, PHP, TypeScript, JavaScript</p>
+                            <p><strong>Frameworks:</strong> React, Angular, Laravel, FastAPI, Express.js, Nest.js, Next.js</p>
+                            <p><strong>Arquitectura:</strong> MVC, Atomic Design, SOLID</p>
+                            <p><strong>Herramientas:</strong> SCRUM, GIT, Docker, Microservicios, CI/CD</p>
+                            <p><strong>Servicios en la Nube:</strong> AWS & Azure</p>
+                            <p><strong>Frontend:</strong> CSS, HTML, Tailwind CSS, Bootstrap</p>
+                            <p><strong>RDBMS:</strong> MySQL, PostgreSQL, SQL Server, Oracle</p>
+                            <p><strong>IA:</strong> LLM, N8N</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="education" class="mt-20">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="grid lg:grid-cols-2 gap-6 items-start">
+                    <div class="glass rounded-2xl p-8 border border-slate-800/60">
+                        <h2 class="section-title text-3xl font-bold text-slate-50">Educación</h2>
+                        <div class="mt-6">
+                            <h3 class="text-xl font-bold text-slate-100">Licenciatura en Ingeniería Informática</h3>
+                            <p class="text-slate-400">Universidad Autónoma de San Luis Potosí (UASLP)</p>
+                            <p class="text-slate-400">Agosto 2014 - Junio 2020</p>
+                            <p class="mt-4 text-slate-300">Inglés: Intermedio | Español: Nativa</p>
+                        </div>
+                    </div>
+                    <div id="contact" class="glass rounded-2xl p-8 border border-slate-800/60">
+                        <h2 class="section-title text-3xl font-bold text-slate-50">Contacto</h2>
+                        <div class="mt-6 space-y-3 text-slate-300">
+                            <p><strong>Teléfono:</strong> 444-140-1711</p>
+                            <p><strong>Email:</strong> jhonquistiano@hotmail.com</p>
+                            <p><strong>LinkedIn:</strong> <a href="#" class="text-sky-300 hover:text-sky-200">Tu LinkedIn</a></p>
+                            <p><strong>GitHub:</strong> <a href="#" class="text-sky-300 hover:text-sky-200">Tu GitHub</a></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <footer class="mt-16 border-t border-slate-800/60">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 text-sm text-slate-400 flex flex-wrap items-center justify-between gap-2">
+                <p>&copy; 2024 Jonathan Eduardo Quistiano Hernández</p>
+                <p>Hecho con enfoque en calidad y experiencia de usuario</p>
+            </div>
+        </footer>
+    </main>
+
+    <div id="project-modal" class="modal-backdrop" aria-hidden="true">
+        <div class="modal-content relative">
+            <button class="modal-close" id="modal-close" aria-label="Cerrar modal">×</button>
+            <img src="" alt="Proyecto grande" id="modal-image" class="modal-image">
+            <div class="modal-nav left" id="modal-prev">‹</div>
+            <div class="modal-nav right" id="modal-next">›</div>
         </div>
-    </section>
-
-    <section id="contact" class="py-16 px-8 bg-gray-800 text-white max-w-4xl mx-auto slide-up">
-        <h2 class="text-3xl font-semibold mb-8 text-center">Contacto</h2>
-        <div class="text-center space-y-4">
-            <p><strong>Teléfono:</strong> 444-140-1711</p>
-            <p><strong>Email:</strong> jhonquistiano@hotmail.com</p>
-            <p><strong>LinkedIn:</strong> <a href="#" class="text-blue-400 hover:text-blue-600">Tu LinkedIn</a></p>
-            <p><strong>GitHub:</strong> <a href="#" class="text-blue-400 hover:text-blue-600">Tu GitHub</a></p>
-        </div>
-    </section>
-
-    <footer class="bg-gray-900 text-white p-4 text-center">
-        <p>&copy; 2024 Jonathan Eduardo Quistiano Hernández</p>
-    </footer>
-
+    </div>
     <script src="script.js"></script>
 </body>
 </html>

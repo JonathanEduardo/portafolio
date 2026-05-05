@@ -1,0 +1,825 @@
+Para la empresa que trabajose desarrollo un chatbot con OpenIA para soporte tecnico de la plataforma que realice para BMW
+
+
+
+Tecnologias: Postgre Vector, Crisp, webhooks, Laravel, 
+
+
+Chatbot Inteligente — Codigo Comentado
+Guia tecnica de cada archivo: que hace, como funciona y como se comunica
+BMW SLP Contractors — Abril 2026
+
+
+Como se comunican los archivos
+Antes de ver el codigo, es importante entender como fluye la informacion entre los archivos. El sistema tiene 3 capas:
+
+CAPA 1 — ENTRADA (Crisp manda un mensaje)
+  CrispWebhookController.php
+  └── Recibe el POST de Crisp, valida la firma, despacha el Job
+
+CAPA 2 — PROCESAMIENTO (Laravel procesa en background)
+  HandleCrispMessage.php  (Job)
+  └── Llama a AgentService para obtener respuesta
+  └── Llama a CrispApiService para responder al usuario
+  └── Guarda historial en chat_sessions (base de datos)
+
+CAPA 3 — INTELIGENCIA (OpenAI genera la respuesta)
+  AgentService.php
+  └── Busca en pgvector los chunks relevantes del PDFq
+  └── Arma el prompt con contexto
+  └── Llama a GPT-4o-mini y retorna la respuesta
+
+Regla de oro: CrispWebhookController solo recibe y delega. AgentService solo piensa. HandleCrispMessage orquesta. CrispApiService solo envia. Cada archivo tiene UNA sola responsabilidad.
+
+
+
+
+Archivo 1 — Migracion knowledge_chunks
+
+database/migrations/xxxx_create_knowledge_chunks_table.php
+Crea la tabla donde se guardan los fragmentos vectorizados de los PDFs
+
+
+<?php
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Support\Facades\DB;
+
+return new class extends Migration {
+    public function up(): void
+    {
+        // Activar la extension pgvector en Postgres
+        // Solo se necesita hacer una vez por base de datos
+        DB::statement('CREATE EXTENSION IF NOT EXISTS vector');
+
+        DB::statement('
+            CREATE TABLE knowledge_chunks (
+                id BIGSERIAL PRIMARY KEY,
+
+                // project_id permite tener multiples proyectos/clientes
+                // en la misma base de datos sin que se mezclen
+                project_id VARCHAR(100) NOT NULL DEFAULT default,
+
+                // El texto original del fragmento del PDF
+                content TEXT NOT NULL,
+
+                // El vector de 1536 numeros que representa el SIGNIFICADO
+                // del texto. Lo genera OpenAI text-embedding-3-small
+                embedding vector(1536),
+
+                // Nombre del archivo PDF de donde vino este fragmento
+                source VARCHAR(500),
+
+                // Datos extra: indice del chunk, cantidad de caracteres
+                metadata JSONB DEFAULT {}::jsonb,
+
+                created_at TIMESTAMP DEFAULT NOW(),
+                updated_at TIMESTAMP DEFAULT NOW()
+            )
+        ');
+
+        // Indice ivfflat: acelera la busqueda por similitud
+        // Sin este indice, buscar entre 10,000 chunks tomaria segundos
+        // Con el indice toma milisegundos
+        // lists=100 es el parametro de precision (mas alto = mas preciso pero mas lento)
+        DB::statement('
+            CREATE INDEX knowledge_chunks_embedding_idx
+            ON knowledge_chunks
+            USING ivfflat (embedding vector_cosine_ops)
+            WITH (lists = 100)
+        ');
+    }
+};
+
+
+
+Archivo 2 — Migracion chat_sessions
+
+database/migrations/xxxx_create_chat_sessions_table.php
+Crea la tabla que guarda el estado de cada conversacion activa en Crisp
+
+
+<?php
+return new class extends Migration {
+    public function up(): void
+    {
+        DB::statement('
+            CREATE TABLE chat_sessions (
+                id BIGSERIAL PRIMARY KEY,
+
+                // El ID unico de la conversacion en Crisp
+                // Crisp lo manda en cada webhook: session_72e814f3-...
+                session_id VARCHAR(255) NOT NULL UNIQUE,
+
+                // El ID del sitio web en Crisp
+                website_id VARCHAR(255) NOT NULL,
+
+                // Que base de conocimiento usar para esta sesion
+                // Relacionado con el project_id de knowledge_chunks
+                project_id VARCHAR(100) NOT NULL DEFAULT default,
+
+                // Datos del usuario (se llenan si Crisp los tiene)
+                email VARCHAR(255),
+                nickname VARCHAR(255),
+
+                // Cuantas veces seguidas el bot respondio que no sabia
+                // Cuando llega a 5, se escala a un agente humano
+                unresolved_count INTEGER NOT NULL DEFAULT 0,
+
+                // true = hay un humano atendiendo, el bot no interviene
+                assigned_to_human BOOLEAN NOT NULL DEFAULT FALSE,
+
+                // Los ultimos 10 mensajes del chat en formato JSON
+                // Se usa para que el bot recuerde lo que se dijo antes
+                // Formato: [{role: user, content: ...}, {role: assistant, content: ...}]
+                history JSONB NOT NULL DEFAULT []::jsonb,
+
+                created_at TIMESTAMP DEFAULT NOW(),
+                updated_at TIMESTAMP DEFAULT NOW()
+            )
+        ');
+    }
+};
+
+
+
+Archivo 3 — IngestDocuments (Comando Artisan)
+
+app/Console/Commands/IngestDocuments.php
+Lee PDFs, los corta en fragmentos y los vectoriza. Se corre UNA sola vez (o cuando cambian los documentos)
+
+
+Este archivo NO corre durante las conversaciones. Solo se usa cuando quieres actualizar la base de conocimiento del bot con nuevos documentos.
+
+
+<?php
+namespace App\Console\Commands;
+
+use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
+use OpenAI\Laravel\Facades\OpenAI;
+use Smalot\PdfParser\Parser;
+
+class IngestDocuments extends Command
+{
+    // Asi se llama el comando desde terminal:
+    // php artisan ingest:documents storage/app/docs --project=mi-sistema
+    // php artisan ingest:documents storage/app/docs --project=mi-sistema --fresh
+    protected $signature = 'ingest:documents
+                            {path : Carpeta con los PDFs}
+                            {--project=default : Nombre del proyecto}
+                            {--fresh : Borra chunks anteriores antes de ingestar}';
+
+    // Tamano de cada fragmento en palabras
+    private int $chunkSize    = 500;
+
+    // Palabras que se repiten entre fragmentos consecutivos
+    // Esto evita que una idea quede cortada entre dos chunks
+    private int $chunkOverlap = 50;
+
+    public function handle(): int
+    {
+        $path      = $this->argument('path');
+        $projectId = $this->option('project');
+
+        // Si se usa --fresh, borra todos los chunks de este proyecto
+        // para reingestar limpio (util cuando actualizas los PDFs)
+        if ($this->option('fresh')) {
+            DB::table('knowledge_chunks')
+                ->where('project_id', $projectId)
+                ->delete();
+        }
+
+        // Busca todos los .pdf en la carpeta especificada
+        $pdfs   = glob("{$path}/*.pdf");
+        $parser = new Parser();
+
+        foreach ($pdfs as $pdfPath) {
+            $filename = basename($pdfPath);
+
+            // PASO 1: Extraer texto del PDF
+            $pdf  = $parser->parseFile($pdfPath);
+            $text = $pdf->getText();
+
+            // PASO 2: Cortar el texto en fragmentos (chunks)
+            $chunks = $this->splitIntoChunks($text);
+
+            foreach ($chunks as $index => $chunk) {
+                // Saltar chunks muy cortos (menos de 50 caracteres)
+                // Son probablemente encabezados o paginas en blanco
+                if (strlen(trim($chunk)) < 50) continue;
+
+                // PASO 3: Generar el vector del chunk
+                // Esto llama a OpenAI y regresa 1536 numeros
+                $embedding = $this->generateEmbedding($chunk);
+
+                // PASO 4: Guardar chunk + vector en la base de datos
+                DB::table('knowledge_chunks')->insert([
+                    'project_id' => $projectId,
+                    'content'    => $chunk,
+                    'embedding'  => '[' . implode(',', $embedding) . ']',
+                    'source'     => $filename,
+                    'metadata'   => json_encode(['chunk_index' => $index]),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+
+                // Pausa de 0.1 segundos para no saturar la API de OpenAI
+                usleep(100000);
+            }
+        }
+        return 0;
+    }
+
+    // Corta el texto en fragmentos de 500 palabras con 50 de overlap
+    private function splitIntoChunks(string $text): array
+    {
+        // Limpia espacios multiples y saltos de linea extra
+        $text  = preg_replace('/\s+/', ' ', $text);
+        $words = explode(' ', trim($text));
+        $chunks = [];
+        $i = 0;
+
+        while ($i < count($words)) {
+            // Toma 500 palabras empezando en la posicion $i
+            $chunk    = implode(' ', array_slice($words, $i, $this->chunkSize));
+            $chunks[] = $chunk;
+
+            // Avanza 450 palabras (500 - 50 de overlap)
+            // Las ultimas 50 palabras se repiten en el siguiente chunk
+            $i += ($this->chunkSize - $this->chunkOverlap);
+        }
+        return $chunks;
+    }
+
+    // Llama a OpenAI para convertir texto en vector
+    private function generateEmbedding(string $text): array
+    {
+        $response = OpenAI::embeddings()->create([
+            'model' => 'text-embedding-3-small',
+            'input' => $text,
+        ]);
+        // Regresa un array de 1536 numeros flotantes
+        return $response->embeddings[0]->embedding;
+    }
+}
+
+
+
+Archivo 4 — AgentService
+
+app/Services/AgentService.php
+El cerebro del bot. Busca informacion relevante y genera la respuesta usando GPT-4o-mini
+
+
+Este es el archivo mas importante. Implementa el patron RAG (Retrieval-Augmented Generation): primero RECUPERA informacion relevante de la base de datos, luego la AUMENTA al prompt, y finalmente GENERA una respuesta.
+
+
+<?php
+namespace App\Services;
+
+use Illuminate\Support\Facades\DB;
+use OpenAI\Laravel\Facades\OpenAI;
+
+class AgentService
+{
+    // Metodo principal: recibe pregunta, regresa respuesta
+    // $message   = lo que escribio el usuario
+    // $projectId = que base de conocimiento consultar
+    // $history   = conversacion previa (para memoria del bot)
+    public function ask(string $message, string $projectId, array $history = []): string
+    {
+        // PASO 1: Buscar informacion relevante en pgvector
+        $context = $this->searchContext($message, $projectId);
+
+        // PASO 2: Crear el system prompt con el contexto encontrado
+        $prompt = $this->buildSystemPrompt($projectId, $context);
+
+        // PASO 3: Armar los mensajes incluyendo el historial
+        $messages = $this->buildMessages($prompt, $history, $message);
+
+        // PASO 4: Llamar a GPT-4o-mini y obtener la respuesta
+        $response = OpenAI::chat()->create([
+            'model'       => config('openai.chat_model', 'gpt-4o-mini'),
+            'messages'    => $messages,
+            'max_tokens'  => 500,
+            // temperatura 0.3 = respuestas consistentes, no muy creativas
+            // 0.0 = siempre igual, 1.0 = muy creativo/impredecible
+            'temperature' => 0.3,
+        ]);
+
+        return $response->choices[0]->message->content;
+    }
+
+    // Busca los fragmentos de PDF mas relevantes para la pregunta
+    private function searchContext(string $query, string $projectId): string
+    {
+        // PASO 1: Convertir la pregunta en vector
+        // Misma dimension (1536) que los chunks guardados
+        $embedding = OpenAI::embeddings()->create([
+            'model' => 'text-embedding-3-small',
+            'input' => $query,
+        ])->embeddings[0]->embedding;
+
+        $vec = '[' . implode(',', $embedding) . ']';
+
+        // PASO 2: Buscar en pgvector los 5 chunks mas similares
+        // El operador <=> calcula la distancia coseno entre vectores
+        // ORDER BY <=> = ordena de mas similar a menos similar
+        // 1 - distancia = similitud (0.0 = nada similar, 1.0 = identico)
+        $chunks = DB::select(
+            'SELECT content,
+                    1 - (embedding <=> ?::vector) as similarity
+             FROM knowledge_chunks
+             WHERE project_id = ?
+             ORDER BY embedding <=> ?::vector
+             LIMIT 5',
+            [$vec, $projectId, $vec]
+        );
+
+        if (empty($chunks)) {
+            return 'No se encontro informacion relevante.';
+        }
+
+        // PASO 3: Filtrar chunks con similitud menor a 0.3
+        // Similitud < 0.3 significa que no tienen relacion con la pregunta
+        // Incluirlos solo confundiria al modelo
+        return collect($chunks)
+            ->filter(fn($c) => $c->similarity > 0.3)
+            ->map(fn($c) => $c->content)
+            ->implode('\n\n---\n\n');
+    }
+
+    // Crea las instrucciones del bot
+    // Aqui se define como debe comportarse el agente
+    private function buildSystemPrompt(string $projectId, string $context): string
+    {
+        return "Eres un agente de soporte inteligente.
+Responde UNICAMENTE basandote en el contexto proporcionado.
+Si la respuesta no esta en el contexto, di que no tienes esa informacion
+y sugiere contactar a un agente humano.
+Responde en el mismo idioma que el usuario. Se conciso y amable.
+
+CONTEXTO DE LA BASE DE CONOCIMIENTO:
+{$context}";
+    }
+
+    // Arma el array de mensajes que recibe GPT-4o-mini
+    // GPT espera: [{role: system, content: ...}, {role: user, content: ...}]
+    private function buildMessages(string $systemPrompt, array $history, string $currentMessage): array
+    {
+        // El system prompt va siempre primero
+        $messages = [['role' => 'system', 'content' => $systemPrompt]];
+
+        // Luego el historial de la conversacion para que el bot recuerde
+        // Formato: alternando user y assistant
+        foreach ($history as $msg) {
+            $messages[] = ['role' => $msg['role'], 'content' => $msg['content']];
+        }
+
+        // Por ultimo el mensaje actual del usuario
+        $messages[] = ['role' => 'user', 'content' => $currentMessage];
+
+        return $messages;
+    }
+}
+
+
+
+Archivo 5 — CrispApiService
+
+app/Services/CrispApiService.php
+Se comunica con la API REST de Crisp: envia mensajes al chat y escala conversaciones a humanos
+
+
+<?php
+namespace App\Services;
+
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+
+class CrispApiService
+{
+    private string $baseUrl = 'https://api.crisp.chat/v1';
+
+    public function __construct()
+    {
+        // Lee las credenciales del .env via config/services.php
+        $this->identifier = config('services.crisp.identifier');
+        $this->secret     = config('services.crisp.secret');
+        $this->websiteId  = config('services.crisp.website_id');
+    }
+
+    // Envia un mensaje de texto al chat del usuario en Crisp
+    // $sessionId = ID de la conversacion (viene del webhook de Crisp)
+    // $content   = el texto que va a ver el usuario
+    public function sendMessage(string $sessionId, string $content): bool
+    {
+        $response = Http::withBasicAuth($this->identifier, $this->secret)
+            // X-Crisp-Tier: plugin es requerido para Plugin Webhooks
+            ->withHeaders(['X-Crisp-Tier' => 'plugin'])
+            ->post(
+                "{$this->baseUrl}/website/{$this->websiteId}/conversation/{$sessionId}/message",
+                [
+                    'type'    => 'text',      // tipo de mensaje
+                    'from'    => 'operator',  // quien envia (el bot = operador)
+                    'origin'  => 'chat',      // canal de origen
+                    'content' => $content,    // el texto de la respuesta
+                ]
+            );
+
+        if (!$response->successful()) {
+            Log::error('Crisp sendMessage fallo', [
+                'session_id' => $sessionId,
+                'status'     => $response->status(),
+            ]);
+            return false;
+        }
+        return true;
+    }
+
+    // Escala la conversacion a un agente humano
+    // Se llama cuando el bot no pudo resolver despues de 5 intentos
+    public function assignToHuman(string $sessionId): bool
+    {
+        // PASO 1: Cambia el estado a 'pending'
+        // Esto notifica al equipo de soporte que hay una conversacion esperando
+        Http::withBasicAuth($this->identifier, $this->secret)
+            ->withHeaders(['X-Crisp-Tier' => 'plugin'])
+            ->patch(
+                "{$this->baseUrl}/website/{$this->websiteId}/conversation/{$sessionId}/state",
+                ['state' => 'pending']
+            );
+
+        // PASO 2: Agrega el segment 'needs_human'
+        // En Crisp puedes configurar reglas de routing que asignen
+        // automaticamente conversaciones con este segment a operadores
+        Http::withBasicAuth($this->identifier, $this->secret)
+            ->withHeaders(['X-Crisp-Tier' => 'plugin'])
+            ->patch(
+                "{$this->baseUrl}/website/{$this->websiteId}/conversation/{$sessionId}/meta",
+                ['segments' => ['needs_human']]
+            );
+
+        return true;
+    }
+}
+
+
+
+Archivo 6 — HandleCrispMessage (Job)
+
+app/Jobs/HandleCrispMessage.php
+El orquestador. Se ejecuta en background cada vez que llega un mensaje. Coordina AgentService y CrispApiService
+
+
+Un Job en Laravel es una tarea que se ejecuta en background (cola). El webhook de Crisp recibe el mensaje y DESPACHA el job. El job se ejecuta despues, sin que Crisp tenga que esperar. Esto es crucial porque Crisp solo espera 5 segundos.
+
+
+<?php
+namespace App\Jobs;
+
+use App\Services\AgentService;
+use App\Services\CrispApiService;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Support\Facades\DB;
+
+class HandleCrispMessage implements ShouldQueue
+{
+    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+
+    // Numero maximo de intentos sin resolver antes de escalar a humano
+    private const MAX_UNRESOLVED = 5;
+
+    // El constructor recibe los datos del mensaje
+    // Estos datos se serializan y guardan en la tabla 'jobs' de la BD
+    public function __construct(
+        private string  $sessionId,
+        private string  $websiteId,
+        private string  $message,
+        private string  $from,
+        private ?string $nickname = null,
+        private ?string $email    = null,
+    ) {}
+
+    // El metodo handle() es el que ejecuta el queue worker
+    // Laravel inyecta automaticamente AgentService y CrispApiService
+    public function handle(AgentService $agent, CrispApiService $crisp): void
+    {
+        // FILTRO 1: Solo procesar mensajes del usuario
+        // Si from = operator, es el bot mismo respondiendo -> ignorar
+        // Esto evita que el bot responda sus propios mensajes (loop infinito)
+        if ($this->from !== 'user') return;
+
+        // PASO 1: Buscar o crear la sesion en la base de datos
+        $session = DB::table('chat_sessions')
+            ->where('session_id', $this->sessionId)
+            ->first();
+
+        if (!$session) {
+            // Primera vez que este usuario escribe: crear registro
+            DB::table('chat_sessions')->insert([
+                'session_id'        => $this->sessionId,
+                'website_id'        => $this->websiteId,
+                'project_id'        => 'mi-sistema', // base de conocimiento
+                'nickname'          => $this->nickname,
+                'email'             => $this->email,
+                'unresolved_count'  => 0,
+                'assigned_to_human' => false,
+                'history'           => '[]',
+                'created_at'        => now(),
+                'updated_at'        => now(),
+            ]);
+            $session = DB::table('chat_sessions')
+                ->where('session_id', $this->sessionId)->first();
+        }
+
+        // FILTRO 2: Si ya hay un humano atendiendo, el bot no interviene
+        // Esto evita que el bot interrumpa la conversacion humano-usuario
+        if ($session->assigned_to_human) return;
+
+        // PASO 2: Recuperar historial de la conversacion
+        $history = json_decode($session->history, true) ?? [];
+
+        // PASO 3: Llamar al AgentService para obtener respuesta
+        $response = $agent->ask($this->message, $session->project_id, $history);
+
+        // PASO 4: Detectar si el bot pudo resolver o no
+        // Busca palabras clave en la respuesta que indican que no supo
+        $couldNotResolve = $this->detectUnresolved($response);
+
+        // PASO 5: Actualizar el historial (guardar solo los ultimos 10 mensajes)
+        $history[] = ['role' => 'user',      'content' => $this->message];
+        $history[] = ['role' => 'assistant',  'content' => $response];
+        $history   = array_slice($history, -10); // Limitar a 10 mensajes
+
+        // PASO 6: Actualizar el contador de intentos sin resolver
+        // Si resolvio: resetear a 0. Si no: incrementar en 1
+        $newCount      = $couldNotResolve ? $session->unresolved_count + 1 : 0;
+        $assignToHuman = $newCount >= self::MAX_UNRESOLVED; // Llego a 5?
+
+        // PASO 7: Guardar cambios en la base de datos
+        DB::table('chat_sessions')
+            ->where('session_id', $this->sessionId)
+            ->update([
+                'history'           => json_encode($history),
+                'unresolved_count'  => $newCount,
+                'assigned_to_human' => $assignToHuman,
+                'updated_at'        => now(),
+            ]);
+
+        // PASO 8: Enviar la respuesta al usuario en Crisp
+        $crisp->sendMessage($this->sessionId, $response);
+
+        // PASO 9: Si llego al limite, escalar a humano
+        if ($assignToHuman) {
+            $crisp->sendMessage($this->sessionId,
+                'Tu consulta necesita atencion especial. Un agente te atendera pronto.'
+            );
+            $crisp->assignToHuman($this->sessionId);
+        }
+    }
+
+    // Detecta si la respuesta indica que el bot no pudo resolver
+    // Busca frases clave que el AgentService usa cuando no sabe algo
+    private function detectUnresolved(string $response): bool
+    {
+        $keywords = [
+            'no tengo esa informacion',
+            'no tengo informacion',
+            'contacta a un agente',
+            'agente humano',
+            'no puedo ayudarte',
+        ];
+        $lower = strtolower($response);
+        foreach ($keywords as $keyword) {
+            if (str_contains($lower, $keyword)) return true;
+        }
+        return false;
+    }
+}
+
+
+
+Archivo 7 — CrispWebhookController
+
+app/Http/Controllers/Api/CrispWebhookController.php
+La puerta de entrada. Recibe todos los eventos de Crisp, los valida y los dirige al Job correspondiente
+
+
+Este controller debe responder en menos de 5 segundos o Crisp lo considera un timeout y reintenta. Por eso NO hace el procesamiento aqui — solo valida y despacha el Job.
+
+
+<?php
+namespace App\Http\Controllers\Api;
+
+use App\Http\Controllers\Controller;
+use App\Jobs\HandleCrispMessage;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+
+class CrispWebhookController extends Controller
+{
+    public function handle(Request $request)
+    {
+        // SEGURIDAD: Verificar que el request viene realmente de Crisp
+        // y no de alguien tratando de inyectar mensajes falsos
+        if (!$this->verifySignature($request)) {
+            Log::warning('Crisp webhook: firma invalida', ['ip' => $request->ip()]);
+            return response('Unauthorized', 401);
+        }
+
+        $payload = $request->json()->all();
+        $event   = $payload['event'] ?? null;
+        $data    = $payload['data']  ?? [];
+
+        // EVENTO 1: Mensaje del usuario -> procesar con IA
+        // IMPORTANTE: Plugin Webhooks usa 'message:send' no 'message:received'
+        if ($event === 'message:send') {
+
+            // Solo procesar mensajes de texto (ignorar imagenes, archivos, etc)
+            if (($data['type'] ?? '') !== 'text') {
+                return response('OK', 200);
+            }
+
+            // Extraer los datos del mensaje
+            $content   = $data['content']          ?? '';
+            $sessionId = $data['session_id']       ?? '';
+            $websiteId = $data['website_id']       ?? '';
+            $from      = $data['from']             ?? '';
+            $nickname  = $data['user']['nickname'] ?? null;
+            $email     = $data['user']['email']    ?? null;
+
+            if (empty($content) || empty($sessionId)) {
+                return response('OK', 200);
+            }
+
+            // Despachar el Job a la queue
+            // El Job se ejecutara en background por el queue:work
+            // Este controller ya puede responder 200 a Crisp
+            HandleCrispMessage::dispatch(
+                $sessionId, $websiteId, $content, $from, $nickname, $email
+            );
+        }
+
+        // EVENTO 2: Humano resolvio la conversacion
+        // Resetear flags para que el bot vuelva a atender
+        if ($event === 'session:set_state') {
+            $state     = $data['state']      ?? '';
+            $sessionId = $data['session_id'] ?? '';
+
+            if ($state === 'resolved' && $sessionId) {
+                // Resetear la sesion: el bot vuelve a estar activo
+                DB::table('chat_sessions')
+                    ->where('session_id', $sessionId)
+                    ->update([
+                        'assigned_to_human' => false,
+                        'unresolved_count'  => 0,
+                        'history'           => '[]',
+                        'updated_at'        => now(),
+                    ]);
+            }
+        }
+
+        // Siempre responder 200 para confirmar recepcion a Crisp
+        return response('OK', 200);
+    }
+
+    // Verifica que el webhook fue enviado por Crisp y no por un atacante
+    // Crisp firma cada request con HMAC-SHA256 usando el signing secret
+    private function verifySignature(Request $request): bool
+    {
+        $secret    = config('services.crisp.webhook_secret');
+        $signature = $request->header('X-Crisp-Signature');
+        $timestamp = $request->header('X-Crisp-Request-Timestamp');
+
+        if (!$signature || !$timestamp || !$secret) return false;
+
+        $body = $request->getContent();
+
+        // Crisp firma el mensaje como: timestamp;body
+        $expected = hash_hmac('sha256', "{$timestamp};{$body}", $secret);
+
+        // hash_equals evita ataques de timing (comparacion segura)
+        return hash_equals($expected, $signature);
+    }
+}
+
+
+
+Archivo 8 — Ruta del webhook
+
+routes/api.php
+Define la URL que recibe los webhooks de Crisp
+
+
+<?php
+use App\Http\Controllers\Api\CrispWebhookController;
+
+// La URL completa es: https://tudominio.com/api/crisp/webhook
+// En desarrollo con ngrok: https://abc123.ngrok.io/api/crisp/webhook
+Route::post('/crisp/webhook', [CrispWebhookController::class, 'handle'])
+
+    // IMPORTANTE: Excluir el middleware CSRF
+    // Laravel por defecto verifica un token CSRF en todos los POST
+    // Crisp no manda ese token porque es un servicio externo
+    // La seguridad se maneja con la firma HMAC en el controller
+    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
+
+
+
+Archivo 9 — Variables de entorno (.env)
+
+.env
+Configuracion sensible del proyecto. NUNCA subir este archivo a Git
+
+
+# ============================================
+# OPENAI — Inteligencia artificial
+# ============================================
+
+# La API Key de OpenAI (se obtiene en platform.openai.com/api-keys)
+OPENAI_API_KEY=sk-proj-tu-key-aqui
+
+# Modelo para vectorizar texto (barato, rapido, muy bueno para busqueda)
+OPENAI_EMBEDDING_MODEL=text-embedding-3-small
+
+# Modelo para generar respuestas (barato, muy capaz para soporte)
+OPENAI_CHAT_MODEL=gpt-4o-mini
+
+# Que motor de LLM usar: 'openai' hoy, 'ollama' cuando escales
+LLM_DRIVER=openai
+
+# ============================================
+# CRISP — Plataforma de chat
+# ============================================
+
+# ID del workspace en Crisp (Settings -> Website Settings)
+CRISP_WEBSITE_ID=0c55921b-9ffb-4c2d-bc7b-a64de2062219
+
+# Credenciales de la API (Marketplace -> tu plugin -> Settings)
+CRISP_API_KEY_IDENTIFIER=4daf34df-7b70-4cc8-addd-575ae25f698a
+CRISP_API_KEY_SECRET=98de2ca6...
+
+# Firma secreta del webhook (se obtiene al crear el webhook en Crisp)
+CRISP_WEBHOOK_SECRET=87fdb6f19a3c5f9a54cbb8e142a58de4
+
+# ============================================
+# QUEUE — Cola de trabajos en background
+# ============================================
+
+# IMPORTANTE: debe ser 'database' NO 'sync'
+# 'sync' ejecuta los jobs inline (Crisp timeout)
+# 'database' guarda los jobs en la tabla 'jobs' y los procesa en background
+QUEUE_CONNECTION=database
+
+
+
+Comandos de referencia rapida
+
+# ---- DESARROLLO (correr los 3 en terminales separadas) ----
+
+# Terminal 1: Servidor Laravel
+php artisan serve
+
+# Terminal 2: Tunnel para exponer el servidor al internet (para Crisp)
+ngrok http 8000
+
+# Terminal 3: Worker que procesa los jobs de la queue
+php artisan queue:work
+
+
+# ---- DESPUES DE CAMBIAR CODIGO ----
+
+php artisan config:clear   # Limpiar cache de configuracion
+php artisan cache:clear    # Limpiar cache general
+php artisan queue:restart  # Reiniciar worker con el nuevo codigo
+
+
+# ---- INGESTAR DOCUMENTOS ----
+
+# Primera vez o cuando agregas documentos nuevos:
+php artisan ingest:documents storage/app/docs --project=mi-sistema
+
+# Para reingestar todo desde cero (borra chunks anteriores):
+php artisan ingest:documents storage/app/docs --project=mi-sistema --fresh
+
+
+# ---- VERIFICAR QUE TODO FUNCIONA ----
+
+# Ver cuantos chunks hay en la base de conocimiento:
+php artisan tinker --execute="echo DB::table('knowledge_chunks')->where('project_id','mi-sistema')->count();"
+
+# Ver sesiones activas:
+php artisan tinker --execute="print_r(DB::table('chat_sessions')->get()->toArray());"
+
+# Probar el agente directamente:
+php artisan tinker
+>>> $agent = new App\Services\AgentService();
+>>> echo $agent->ask('tu pregunta aqui', 'mi-sistema');
+
+# Ver jobs pendientes:
+php artisan tinker --execute="echo DB::table('jobs')->count();"
+
+BMW SLP Contractors — Chatbot Inteligente — Abril 2026

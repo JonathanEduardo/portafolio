@@ -1,0 +1,7 @@
+Pagina web realizada para vafeterias de la zona aparti de mi cafeteria se lanzo una app web para barias cafeterias
+
+pueden gestionar su inventario de productos stock, y crear su catalogo de productos los cuales se pueden genera runa receta que se asocia a productos y tener su recesario para produccion, genera un costo sugerido y en base al comsumo lanza alertas de que el producto en almacen baja 
+
+
+
+LTenologias: Laravel, React

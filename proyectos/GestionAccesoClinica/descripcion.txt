@@ -1,0 +1,5 @@
+Proyecto de gestion de permisos
+
+Proyecto en proceso es un proyecto que ayuda a el acceso de personal externo a una clinica de san luis potosi se coneta a una barra de acceso controlado, se integra OpenIa para consumo de api para validacion de docjumentos en tiempo real 
+
+Tecnologia: React js Vite enrutamiento manual, Back end Express Js, Psotgres sql, atomic desing y clean arquitecture. 

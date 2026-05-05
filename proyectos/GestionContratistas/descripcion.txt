@@ -1,0 +1,6 @@
+Proyecto elaborado para una empresa alemana automotriz en SLP
+
+El prpyeto yrata de la gestion de acceso a contratista medicion de KPI, incidentes, Polizas seguro, gestion DC3 etc
+
+Tecnologia: Laravel 12, php 8.3, Livewire, 
+

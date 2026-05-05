@@ -1,0 +1,4 @@
+Proyecto personal para el mercado para gestion de viajes dirijido principalmente a agencias de viajes como primer cliente que puedan gestionar sus trabajadores elegir paquetes que mejor le convengan y tener a sus clientes en cartera y que sus clientes puedan hacer uso de ella con la mejor experciancia de usuario posible para ver su itinerario
+
+Tecnologias empleadas: NEXT js para front por su SEO, Back Fast API por sus seguridad modelos schemas y simplicidad para creacion de apis y testeo asi como su ASYNC nativa velocidad etc, TANKSTACK por su elegacia en creacion de consumo de apis, oAuth2 JWT con PKPC para mexima seguridad de sesiones, Tailwind y shadcn para una mejor expericnia visual y de deaarrollo de ocmponenetes, por ultimo se uso Atomic desing pra estructuracion front y DOCKER para orquestar todo el proyecto y escalarlo a fururo por si necesita crecer y separar todo 
+ 

@@ -1,1 +1,0 @@
-Proyecto 2: Una herramienta de análisis de datos en Python. Utiliza bibliotecas como Pandas y Matplotlib para procesar y visualizar datos.
