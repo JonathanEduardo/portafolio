@@ -25,12 +25,15 @@
 </head>
 <body class="bg-gray-100 text-gray-900">
     <header class="bg-gray-800 text-white p-6 text-center shadow-lg fade-in">
-        <h1 class="text-4xl font-bold">Mi Portafolio</h1>
+        <h1 class="text-4xl font-bold">Jonathan Eduardo Quistiano Hernández</h1>
+        <p class="text-lg mt-2">Desarrollador Full Stack | Arquitecto JR</p>
         <nav class="mt-4">
             <ul class="flex justify-center space-x-6">
                 <li><a href="#about" class="hover:text-blue-400 transition duration-300">Sobre Mí</a></li>
+                <li><a href="#experience" class="hover:text-blue-400 transition duration-300">Experiencia</a></li>
                 <li><a href="#projects" class="hover:text-blue-400 transition duration-300">Proyectos</a></li>
                 <li><a href="#skills" class="hover:text-blue-400 transition duration-300">Habilidades</a></li>
+                <li><a href="#education" class="hover:text-blue-400 transition duration-300">Educación</a></li>
                 <li><a href="#contact" class="hover:text-blue-400 transition duration-300">Contacto</a></li>
             </ul>
         </nav>
@@ -38,47 +41,115 @@
 
     <section id="about" class="py-16 px-8 max-w-4xl mx-auto slide-up">
         <h2 class="text-3xl font-semibold mb-4 text-center">Sobre Mí</h2>
-        <p class="text-lg leading-relaxed">Hola, soy [Tu Nombre]. Soy un desarrollador apasionado por la tecnología. Aquí encontrarás mis proyectos y habilidades.</p>
+        <p class="text-lg leading-relaxed">Desarrollador Full Stack con más de 6 años creando software empresarial de alto impacto. Domino el ciclo completo: análisis, diseño, desarrollo, implementación y mejora continua. Trabajo con Cloud (AWS, Azure), automatización CI/CD y arquitecturas escalables. Comprometido con código de calidad, estándares internos y peer reviews. Impulso iniciativas técnicas con Scrum e incorporo IA y LLMs cuando aportan valor.</p>
+    </section>
+
+    <section id="experience" class="py-16 px-8 bg-gray-50 max-w-6xl mx-auto slide-up">
+        <h2 class="text-3xl font-semibold mb-8 text-center">Experiencia Profesional</h2>
+        <div class="space-y-8">
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h3 class="text-xl font-bold">Programador Full Stack</h3>
+                <p class="text-gray-600">Kircof Digital | Enero 2020 – Presente</p>
+                <ul class="list-disc list-inside mt-4 space-y-2">
+                    <li>Desarrollo y mantenimiento de aplicaciones web robustas para empresas como BMW, Syngenta, Henkel, Mattsa y Eticom.</li>
+                    <li>Implementación de APIs seguras y escalables con Laravel PHP, .NET C#, Node.js (NEST JS).</li>
+                    <li>Diseño y optimización de bases de datos relacionales (MySQL, PostgreSQL, SQL Server).</li>
+                    <li>Integración de servicios Cloud (AWS, Azure) con pipelines CI/CD automatizados.</li>
+                    <li>Aplicación de principios SOLID, arquitectura limpia y control de versiones con Git.</li>
+                    <li>Implementación de estándares internos de calidad, revisión de código y testing automatizado.</li>
+                </ul>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h3 class="text-xl font-bold">Programador Full Stack</h3>
+                <p class="text-gray-600">Skye Group | Octubre 2024 – Julio 2025</p>
+                <ul class="list-disc list-inside mt-4 space-y-2">
+                    <li>Proyectos Fullstack para marcas como KIA, Gobierno de NL y Ruhrpumpen.</li>
+                    <li>Integración de LLMs para soluciones empresariales: diseño, integración y mejora continua (NodeJs, Python).</li>
+                    <li>Diseño e implementación de arquitecturas MVC, limpias y modulares, aplicando principios SOLID en el back-end (Express.js, FastAPI, Laravel) y Atomic Design en el front-end (React, Angular).</li>
+                    <li>Autenticación segura mediante protocolo OAuth 2.0 + PKCE.</li>
+                    <li>CI/CD en Azure DevOps con pruebas automatizadas, análisis estático y despliegues controlados.</li>
+                    <li>Coordinación técnica y documentación con Swagger, OpenAPI y MkDocs.</li>
+                </ul>
+            </div>
+        </div>
     </section>
 
     <section id="projects" class="py-16 px-8 bg-white max-w-6xl mx-auto slide-up">
         <h2 class="text-3xl font-semibold mb-8 text-center">Proyectos</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             <div class="project bg-gray-50 p-6 rounded-lg shadow-md hover:shadow-lg transition duration-300">
+                <img src="proyectos/proyecto1/imagen.svg" alt="Proyecto 1" class="w-full h-32 object-cover mb-4 rounded">
                 <h3 class="text-xl font-bold mb-2">Proyecto 1</h3>
                 <p class="mb-4">Descripción del proyecto 1.</p>
                 <a href="#" class="text-blue-500 hover:text-blue-700">Ver más</a>
             </div>
             <div class="project bg-gray-50 p-6 rounded-lg shadow-md hover:shadow-lg transition duration-300">
+                <img src="proyectos/proyecto2/imagen.svg" alt="Proyecto 2" class="w-full h-32 object-cover mb-4 rounded">
                 <h3 class="text-xl font-bold mb-2">Proyecto 2</h3>
                 <p class="mb-4">Descripción del proyecto 2.</p>
                 <a href="#" class="text-blue-500 hover:text-blue-700">Ver más</a>
             </div>
-            <!-- Agregar más proyectos aquí -->
+            <div class="project bg-gray-50 p-6 rounded-lg shadow-md hover:shadow-lg transition duration-300">
+                <img src="proyectos/proyecto3/imagen.svg" alt="Proyecto 3" class="w-full h-32 object-cover mb-4 rounded">
+                <h3 class="text-xl font-bold mb-2">Proyecto 3</h3>
+                <p class="mb-4">Descripción del proyecto 3.</p>
+                <a href="#" class="text-blue-500 hover:text-blue-700">Ver más</a>
+            </div>
         </div>
     </section>
 
     <section id="skills" class="py-16 px-8 max-w-4xl mx-auto slide-up">
         <h2 class="text-3xl font-semibold mb-8 text-center">Habilidades</h2>
-        <div class="flex flex-wrap justify-center gap-4">
-            <span class="bg-blue-500 text-white px-4 py-2 rounded-full">HTML</span>
-            <span class="bg-blue-500 text-white px-4 py-2 rounded-full">CSS</span>
-            <span class="bg-blue-500 text-white px-4 py-2 rounded-full">JavaScript</span>
-            <span class="bg-blue-500 text-white px-4 py-2 rounded-full">Python</span>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div>
+                <h3 class="text-xl font-bold mb-4">Habilidades Duras</h3>
+                <div class="flex flex-wrap gap-2">
+                    <span class="bg-blue-500 text-white px-3 py-1 rounded-full">Pensamiento analítico y crítico</span>
+                    <span class="bg-blue-500 text-white px-3 py-1 rounded-full">Adaptabilidad y aprendizaje continuo</span>
+                    <span class="bg-blue-500 text-white px-3 py-1 rounded-full">Enfoque en el usuario</span>
+                    <span class="bg-blue-500 text-white px-3 py-1 rounded-full">Resolución de problemas</span>
+                    <span class="bg-blue-500 text-white px-3 py-1 rounded-full">Colaboración interfuncional</span>
+                    <span class="bg-blue-500 text-white px-3 py-1 rounded-full">Atención al detalle</span>
+                </div>
+            </div>
+            <div>
+                <h3 class="text-xl font-bold mb-4">Habilidades Blandas</h3>
+                <div class="space-y-2">
+                    <p><strong>Lenguajes:</strong> Python, Node.js, PHP, TypeScript, JavaScript</p>
+                    <p><strong>Frameworks:</strong> React, Angular, Laravel, FastAPI, Express.js, Nest.js, Next.js</p>
+                    <p><strong>Arquitectura:</strong> MVC, Atomic Design, SOLID</p>
+                    <p><strong>Herramientas:</strong> SCRUM, GIT, Docker, Microservicios, CI/CD</p>
+                    <p><strong>Servicios en la Nube:</strong> AWS & Azure</p>
+                    <p><strong>Frontend:</strong> CSS, HTML, Tailwind CSS, Bootstrap</p>
+                    <p><strong>RDBMS:</strong> MySQL, PostgreSQL, SQL Server, Oracle</p>
+                    <p><strong>IA:</strong> LLM, N8N</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="education" class="py-16 px-8 bg-white max-w-4xl mx-auto slide-up">
+        <h2 class="text-3xl font-semibold mb-8 text-center">Educación</h2>
+        <div class="bg-gray-50 p-6 rounded-lg shadow-md">
+            <h3 class="text-xl font-bold">Licenciatura en Ingeniería Informática</h3>
+            <p class="text-gray-600">Universidad Autónoma de San Luis Potosí (UASLP)</p>
+            <p class="text-gray-600">Agosto 2014 - Junio 2020</p>
+            <p class="mt-4">Inglés: Intermedio | Español: Nativa</p>
         </div>
     </section>
 
     <section id="contact" class="py-16 px-8 bg-gray-800 text-white max-w-4xl mx-auto slide-up">
         <h2 class="text-3xl font-semibold mb-8 text-center">Contacto</h2>
-        <div class="text-center">
-            <p class="mb-2">Email: tuemail@example.com</p>
-            <p class="mb-2">LinkedIn: <a href="#" class="text-blue-400 hover:text-blue-600">Tu LinkedIn</a></p>
-            <p>GitHub: <a href="#" class="text-blue-400 hover:text-blue-600">Tu GitHub</a></p>
+        <div class="text-center space-y-4">
+            <p><strong>Teléfono:</strong> 444-140-1711</p>
+            <p><strong>Email:</strong> jhonquistiano@hotmail.com</p>
+            <p><strong>LinkedIn:</strong> <a href="#" class="text-blue-400 hover:text-blue-600">Tu LinkedIn</a></p>
+            <p><strong>GitHub:</strong> <a href="#" class="text-blue-400 hover:text-blue-600">Tu GitHub</a></p>
         </div>
     </section>
 
     <footer class="bg-gray-900 text-white p-4 text-center">
-        <p>&copy; 2023 Mi Portafolio</p>
+        <p>&copy; 2024 Jonathan Eduardo Quistiano Hernández</p>
     </footer>
 
     <script src="script.js"></script>
