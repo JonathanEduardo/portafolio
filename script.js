@@ -8,6 +8,26 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     });
 });
 
+// Mobile menu toggle
+const mobileMenuButton = document.getElementById('mobile-menu-button');
+const mobileMenu = document.getElementById('mobile-menu');
+const mobileMenuLinks = document.querySelectorAll('.mobile-nav-link');
+
+if (mobileMenuButton && mobileMenu) {
+    mobileMenuButton.addEventListener('click', () => {
+        const isHidden = mobileMenu.classList.contains('hidden');
+        mobileMenu.classList.toggle('hidden');
+        mobileMenuButton.setAttribute('aria-expanded', isHidden ? 'true' : 'false');
+    });
+
+    mobileMenuLinks.forEach(link => {
+        link.addEventListener('click', () => {
+            mobileMenu.classList.add('hidden');
+            mobileMenuButton.setAttribute('aria-expanded', 'false');
+        });
+    });
+}
+
 // Project cards collapse toggles
 const toggles = document.querySelectorAll('.project-toggle');
 toggles.forEach(button => {
@@ -89,11 +109,6 @@ const openModal = () => {
     modal.classList.add('open');
     modal.setAttribute('aria-hidden', 'false');
     updateModalImage();
-    if (modalTimer) clearInterval(modalTimer);
-    modalTimer = setInterval(() => {
-        modalIndex = (modalIndex + 1) % projectState[modalProject].images.length;
-        updateModalImage();
-    }, 3000);
 };
 
 const closeModal = () => {

@@ -62,6 +62,9 @@
             font-weight: 600;
             border: 1px solid rgba(59, 130, 246, 0.35);
             transition: transform 0.2s ease, box-shadow 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            white-space: nowrap;
         }
 
         .btn-primary:hover {
@@ -199,6 +202,39 @@
             right: 1rem;
         }
 
+        .modal-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 3rem;
+            height: 3rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: rgba(15, 23, 42, 0.7);
+            color: #e2e8f0;
+            font-size: 1.75rem;
+            cursor: pointer;
+            transition: background 0.2s ease, color 0.2s ease;
+            user-select: none;
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-nav:hover {
+            background: rgba(59, 130, 246, 0.8);
+            color: #fff;
+        }
+
+        .modal-nav.left {
+            left: 0.75rem;
+        }
+
+        .modal-nav.right {
+            right: 0.75rem;
+        }
+
     </style>
 </head>
 <body class="min-h-screen">
@@ -211,10 +247,10 @@
                     </div>
                     <div class="leading-tight">
                         <div class="text-slate-100 font-semibold">Jonathan Quistiano</div>
-                        <div class="text-xs text-slate-400">Backend & Cloud Engineer | Arquitectura aplicada | AWS & Automatización</div>
+                        <div class="text-xs text-slate-400 block md:hidden xl:block">Backend & Cloud Engineer | Arquitectura aplicada | AWS & Automatización</div>
                     </div>
                 </a>
-                <div class="hidden lg:flex items-center gap-8 text-sm">
+                <div class="hidden lg:flex items-center gap-4 xl:gap-8 text-sm">
                     <a href="#about" class="nav-link text-slate-300 hover:text-white transition">Sobre Mí</a>
                     <a href="#differentiators" class="nav-link text-slate-300 hover:text-white transition">Diferencial</a>
                     <a href="#experience" class="nav-link text-slate-300 hover:text-white transition">Experiencia</a>
@@ -228,6 +264,24 @@
                     </a>
 
                     
+                </div>
+                <button id="mobile-menu-button" class="lg:hidden inline-flex items-center justify-center h-10 w-10 rounded-xl border border-slate-700/40 bg-slate-900/40 text-slate-200" aria-label="Abrir menú" aria-expanded="false" aria-controls="mobile-menu">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+            </div>
+            <div id="mobile-menu" class="lg:hidden hidden px-4 sm:px-6 pb-4">
+                <div class="glass rounded-2xl border border-slate-800/60 p-4 flex flex-col gap-3 text-sm">
+                    <a href="#about" class="mobile-nav-link text-slate-300 hover:text-white transition">Sobre Mí</a>
+                    <a href="#differentiators" class="mobile-nav-link text-slate-300 hover:text-white transition">Diferencial</a>
+                    <a href="#experience" class="mobile-nav-link text-slate-300 hover:text-white transition">Experiencia</a>
+                    <a href="#projects" class="mobile-nav-link text-slate-300 hover:text-white transition">Proyectos</a>
+                    <a href="#skills" class="mobile-nav-link text-slate-300 hover:text-white transition">Habilidades</a>
+                    <a href="#education" class="mobile-nav-link text-slate-300 hover:text-white transition">Educación</a>
+                    <a href="#contact" class="mobile-nav-link text-slate-300 hover:text-white transition">Contacto</a>
+                    <a class="btn-primary mt-2 inline-flex items-center gap-2 justify-center" href="CV_Jonathan_E_Quistiano_Hernandez_2025_11.pdf_2025_11_4.pdf" download>
+                        <i class="fa-solid fa-download"></i>
+                        Descargar CV
+                    </a>
                 </div>
             </div>
         </div>
