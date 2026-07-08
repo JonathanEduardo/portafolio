@@ -1,0 +1,11 @@
+# 01. Vision General
+
+## Objetivo del producto
+Construir un sistema de consultorio medico multi-clinica orientado a flujo operativo real en consulta externa:
+- admision y busqueda de pacientes
+- triaje de enfermeria
+- consulta medica
+- receta/estudios/historial
+- agenda de citas y seguimiento
+
+El sistema debe priorizar velocidad de operacion, trazabilidad clinica y escalabilidad organizacional.

@@ -127,7 +127,7 @@
             to { transform: translateY(0); opacity: 1; }
         }
         .project-image {
-            min-height: 180px;
+            min-height: 240px;
             background-size: cover;
             background-position: center;
             position: relative;
@@ -183,8 +183,8 @@
             display: flex;
         }
         .modal-content {
-            max-width: 90%;
-            width: 900px;
+            max-width: min(96vw, 1320px);
+            width: 96vw;
             background: #111827;
             border-radius: 1rem;
             overflow: hidden;
@@ -192,7 +192,7 @@
         }
         .modal-image {
             width: 100%;
-            height: 500px;
+            height: min(82vh, 900px);
             object-fit: contain;
             background: #0f172a;
         }
@@ -235,6 +235,27 @@
             right: 0.75rem;
         }
 
+        @media (max-width: 1024px) {
+            .project-image {
+                min-height: 220px;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .project-image {
+                min-height: 200px;
+            }
+
+            .modal-content {
+                width: 98vw;
+                max-width: 98vw;
+            }
+
+            .modal-image {
+                height: min(78vh, 680px);
+            }
+        }
+
     </style>
 </head>
 <body class="min-h-screen">
@@ -258,11 +279,11 @@
                     <a href="#skills" class="nav-link text-slate-300 hover:text-white transition">Habilidades</a>
                     <a href="#education" class="nav-link text-slate-300 hover:text-white transition">Educación</a>
                     <a href="#contact" class="nav-link text-slate-300 hover:text-white transition">Contacto</a>
-                    <a class="btn-primary" href="CV_Jonathan_E_Quistiano_Hernandez_2025_11.pdf_2025_11_4.pdf" download>
+                    <a class="btn-primary" href="CV_Jonathan_E_Quistiano_Hernandez.pdf" download>
                         <i class="fa-solid fa-download mr-2"></i>
                         Descargar CV
                     </a>
-
+                    
                     
                 </div>
                 <button id="mobile-menu-button" class="lg:hidden inline-flex items-center justify-center h-10 w-10 rounded-xl border border-slate-700/40 bg-slate-900/40 text-slate-200" aria-label="Abrir menú" aria-expanded="false" aria-controls="mobile-menu">
@@ -278,7 +299,7 @@
                     <a href="#skills" class="mobile-nav-link text-slate-300 hover:text-white transition">Habilidades</a>
                     <a href="#education" class="mobile-nav-link text-slate-300 hover:text-white transition">Educación</a>
                     <a href="#contact" class="mobile-nav-link text-slate-300 hover:text-white transition">Contacto</a>
-                    <a class="btn-primary mt-2 inline-flex items-center gap-2 justify-center" href="CV_Jonathan_E_Quistiano_Hernandez_2025_11.pdf_2025_11_4.pdf" download>
+                    <a class="btn-primary mt-2 inline-flex items-center gap-2 justify-center" href="CV_Jonathan_E_Quistiano_Hernandez.pdf" download>
                         <i class="fa-solid fa-download"></i>
                         Descargar CV
                     </a>
@@ -507,26 +528,7 @@
                         </div>
                     </div>
                     <div class="project project-card p-6">
-                        <div class="project-image mb-4" data-images='[]' data-project="contratistas">
-                            <span>Imagen no disponible</span>
-                        </div>
-                        <div class="flex items-start justify-between gap-4">
-                            <div>
-                                <h3 class="text-xl font-bold text-slate-100">Gestión Contratistas</h3>
-                                <p class="text-sm text-slate-400 mt-1">Plataforma de control operativo, riesgo y cumplimiento.</p>
-                            </div>
-                            <button class="project-toggle text-sky-300 hover:text-sky-200" data-target="contratistas-details" type="button">+</button>
-                        </div>
-                        <div id="contratistas-details" class="collapse-content overflow-hidden max-h-0 transition-all duration-300 ease-out text-sm text-slate-300 mt-4">
-                            <p class="mb-2"><strong>Problema:</strong> Información de desempeño, incidentes y pólizas fragmentada entre múltiples áreas.</p>
-                            <p class="mb-2"><strong>Stack:</strong> Laravel, Livewire, MySQL, dashboards KPI.</p>
-                            <p class="mb-2"><strong>Reto técnico:</strong> Unificar reglas de negocio complejas y visualización ejecutiva en una sola plataforma.</p>
-                            <p class="mb-2"><strong>Valor generado:</strong> Mejor visibilidad de riesgo operativo y decisiones más rápidas basadas en datos.</p>
-                            <p class="text-xs text-slate-500">Código privado.</p>
-                        </div>
-                    </div>
-                    <div class="project project-card p-6">
-                        <div class="project-image mb-4" data-images='["proyectos/TeLatte/materialnuevo.png","proyectos/TeLatte/receta.png","proyectos/TeLatte/imagen.svg"]' data-project="telatte">
+                        <div class="project-image mb-4" data-images='["proyectos/TeLatte/telatte-1.png","proyectos/TeLatte/telatte-2.png","proyectos/TeLatte/telatte-3.png","proyectos/TeLatte/imagen.svg"]' data-project="telatte">
                             <span>TeLatte</span>
                         </div>
                         <div class="flex items-start justify-between gap-4">
@@ -545,21 +547,40 @@
                         </div>
                     </div>
                     <div class="project project-card p-6">
-                        <div class="project-image mb-4" data-images='["proyectos/TravelCore/Login.png","proyectos/TravelCore/VistaViajes.png"]' data-project="travelcore">
+                        <div class="project-image mb-4" data-images='["proyectos/ConsultorioMedico/CodeNuvemTriajesYmas1.png","proyectos/ConsultorioMedico/CodeNuvemTriajesYmas2.png","proyectos/ConsultorioMedico/CodeNuvemTriajesYmas3.png","proyectos/ConsultorioMedico/CodeNuvemTriajesYmas4.png"]' data-project="consultoriomedico">
+                            <span>ConsultorioMedico</span>
+                        </div>
+                        <div class="flex items-start justify-between gap-4">
+                            <div>
+                                <h3 class="text-xl font-bold text-slate-100">ConsultorioMedico</h3>
+                                <p class="text-sm text-slate-400 mt-1">Sistema multi-clínica para operación médica de punta a punta.</p>
+                            </div>
+                            <button class="project-toggle text-sky-300 hover:text-sky-200" data-target="consultoriomedico-details" type="button">+</button>
+                        </div>
+                        <div id="consultoriomedico-details" class="collapse-content overflow-hidden max-h-0 transition-all duration-300 ease-out text-sm text-slate-300 mt-4">
+                            <p class="mb-2"><strong>Problema:</strong> La operación clínica estaba fragmentada entre admisión, triaje, consulta, recetas y citas.</p>
+                            <p class="mb-2"><strong>Stack:</strong> Plataforma web modular orientada a flujo clínico real para consultorio externo.</p>
+                            <p class="mb-2"><strong>Reto técnico:</strong> Diseñar un flujo multi-clínica rápido, trazable y preparado para escalar sin perder usabilidad operativa.</p>
+                            <p class="mb-2"><strong>Valor generado:</strong> Continuidad del proceso asistencial en una sola solución con mejor seguimiento y control clínico.</p>
+                            <p class="text-xs text-slate-500">Código privado.</p>
+                        </div>
+                    </div>
+                    <div class="project project-card p-6">
+                        <div class="project-image mb-4" data-images='["proyectos/TravelCore/31b6c642-93c4-4032-aa68-a5a2a734516b.png","proyectos/TravelCore/b13d6fc0-b9ed-4dc8-869b-62a8f02b199b.png","proyectos/TravelCore/imagen.svg"]' data-project="travelcore">
                             <span>TravelCore</span>
                         </div>
                         <div class="flex items-start justify-between gap-4">
                             <div>
                                 <h3 class="text-xl font-bold text-slate-100">TravelCore</h3>
-                                <p class="text-sm text-slate-400 mt-1">Plataforma de gestión de viajes con seguridad y arquitectura moderna.</p>
+                                <p class="text-sm text-slate-400 mt-1">Gestión de viajes para agencias con foco en UX, seguridad y escalabilidad.</p>
                             </div>
                             <button class="project-toggle text-sky-300 hover:text-sky-200" data-target="travelcore-details" type="button">+</button>
                         </div>
                         <div id="travelcore-details" class="collapse-content overflow-hidden max-h-0 transition-all duration-300 ease-out text-sm text-slate-300 mt-4">
-                            <p class="mb-2"><strong>Problema:</strong> Necesidad de centralizar itinerarios, paquetes y sesiones de clientes en una sola plataforma.</p>
-                            <p class="mb-2"><strong>Stack:</strong> Next.js, FastAPI, OAuth2/JWT, Docker.</p>
-                            <p class="mb-2"><strong>Reto técnico:</strong> Diseñar una base segura y desacoplada preparada para crecimiento multiagencia.</p>
-                            <p class="mb-2"><strong>Valor generado:</strong> Operación comercial más ordenada y escalable, lista para nuevos módulos.</p>
+                            <p class="mb-2"><strong>Problema:</strong> Agencias y clientes operaban itinerarios y paquetes en herramientas separadas y con poca visibilidad.</p>
+                            <p class="mb-2"><strong>Stack:</strong> Next.js, FastAPI, TanStack Query, OAuth2 + JWT (PKCE), Tailwind, shadcn, Docker.</p>
+                            <p class="mb-2"><strong>Reto técnico:</strong> Definir una arquitectura desacoplada para multiagencia, sesiones seguras y consumo de APIs con alto rendimiento.</p>
+                            <p class="mb-2"><strong>Valor generado:</strong> Experiencia más clara para seguimiento de viajes e implementación lista para crecer por módulos.</p>
                             <p class="text-xs text-slate-500">Código privado.</p>
                         </div>
                     </div>
